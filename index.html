@@ -2218,16 +2218,26 @@ const Home = ({ setRoute }) => {
             <div>
               <span className="eyebrow">Word of mouth</span>
               <h2 className="h2" style={{marginTop:18}}>What folks say.</h2>
+              <p style={{marginTop:12, color:"var(--fg-muted)", fontSize:14}}>
+                Example reviews — placeholders until real customer quotes are added.
+              </p>
             </div>
           </div>
           <div className="tg">
             {[
-              { quote: "Anthony showed up early, knocked out my whole interior in three hours. Cup holders look brand new. Worth every dollar.", name: "Matthew W.", meta: "2019 Honda Accord · Interior + Stain Removal", initials: "M" },
-              { quote: "Best headlight restoration I've ever seen. Looked like a brand new truck after. Already booked him for the wrap.", name: "Carlos R.", meta: "2017 Ram 1500 · Headlight Restore", initials: "C" },
-              { quote: "Wrapped my hood and mirrors gloss black. Hand-trimmed, no bubbles, clean edges. He cares about the work.", name: "Devon T.", meta: "2022 Tesla Model 3 · Partial Wrap", initials: "D" },
+              { quote: "Anthony showed up early, knocked out my whole interior in three hours. Cup holders look brand new. Worth every dollar.", name: "Matthew W.", meta: "2019 Honda Accord · Interior + Stain Removal", initials: "M", example: true },
+              { quote: "Best headlight restoration I've ever seen. Looked like a brand new truck after. Already booked him for the wrap.", name: "Carlos R.", meta: "2017 Ram 1500 · Headlight Restore", initials: "C", example: true },
+              { quote: "Wrapped my hood and mirrors gloss black. Hand-trimmed, no bubbles, clean edges. He cares about the work.", name: "Devon T.", meta: "2022 Tesla Model 3 · Partial Wrap", initials: "D", example: true },
             ].map((t,i) => (
               <div key={i} className="testimonial">
-                <div className="testimonial__stars">★★★★★</div>
+                <div style={{display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div className="testimonial__stars">★★★★★</div>
+                  {t.example && (
+                    <span style={{fontSize:11, letterSpacing:1, textTransform:"uppercase", color:"var(--fg-muted)", border:"1px solid var(--fg-muted)", borderRadius:4, padding:"2px 6px"}}>
+                      Example
+                    </span>
+                  )}
+                </div>
                 <p className="testimonial__quote">"{t.quote}"</p>
                 <div className="testimonial__person">
                   <div className="testimonial__avatar">{t.initials}</div>
