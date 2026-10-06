@@ -2246,9 +2246,11 @@ const Book = ({ setRoute }) => {
     when: "this-week",
     notes: "",
   });
-  const [photos, setPhotos] = React.useState([]); // {url, name}
+  const [photos, setPhotos] = React.useState([]); // {url, name, file}
   const [drag, setDrag] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
+  const [sending, setSending] = React.useState(false);
+  const [sendError, setSendError] = React.useState(false);
   const fileRef = React.useRef(null);
 
   const toggleService = (id) => {
@@ -2262,7 +2264,7 @@ const Book = ({ setRoute }) => {
     const arr = Array.from(files).slice(0, 8);
     const promises = arr.map(file => new Promise(res => {
       const r = new FileReader();
-      r.onload = e => res({ url: e.target.result, name: file.name });
+      r.onload = e => res({ url: e.target.result, name: file.name, file });
       r.readAsDataURL(file);
     }));
     Promise.all(promises).then(news => setPhotos(p => [...p, ...news].slice(0, 8)));
@@ -2273,10 +2275,44 @@ const Book = ({ setRoute }) => {
     onFiles(e.dataTransfer.files);
   };
 
+  const serviceTitles = { ext: "Exterior Detail", int: "Interior Detail", stain: "Stain Removal", headlight: "Headlight Restoration", paint: "Full Interior & Exterior Detail", wrap: "Vinyl Wrap" };
+  const whenLabels = { "this-week": "As soon as possible — this week", "next-week": "Next week", "2-weeks": "In the next two weeks", "flex": "No rush — pick what works for you" };
+
   const submit = (e) => {
     e.preventDefault();
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setSending(true);
+    setSendError(false);
+
+    const fd = new FormData();
+    fd.append("_subject", `New booking request — ${form.name || "no name"}`);
+    fd.append("name", form.name);
+    fd.append("email", form.email);
+    fd.append("phone", form.phone);
+    fd.append("vehicle", [form.year, form.make, form.model].filter(Boolean).join(" "));
+    fd.append("services", form.services.map(id => serviceTitles[id] || id).join(", "));
+    fd.append("when", whenLabels[form.when] || form.when);
+    fd.append("notes", form.notes);
+    photos.forEach((p, i) => { if (p.file) fd.append(`photo_${i+1}`, p.file, p.name); });
+
+    fetch("https://formspree.io/f/mzedzpov", {
+      method: "POST",
+      body: fd,
+      headers: { Accept: "application/json" },
+    })
+      .then(res => {
+        if (res.ok) {
+          setSending(false);
+          setSubmitted(true);
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } else {
+          setSending(false);
+          setSendError(true);
+        }
+      })
+      .catch(() => {
+        setSending(false);
+        setSendError(true);
+      });
   };
 
   if (submitted) {
@@ -2450,9 +2486,15 @@ const Book = ({ setRoute }) => {
                 </p>
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{marginTop:24, width:"100%", height:60, fontSize:13}}>
-                Send Booking Request <IconArrow size={16}/>
+              <button type="submit" className="btn btn-primary" disabled={sending}
+                      style={{marginTop:24, width:"100%", height:60, fontSize:13, opacity: sending ? 0.7 : 1, cursor: sending ? "not-allowed" : "pointer"}}>
+                {sending ? "Sending…" : (<>Send Booking Request <IconArrow size={16}/></>)}
               </button>
+              {sendError && (
+                <p className="muted" style={{textAlign:"center", marginTop:12, fontSize:12, color:"var(--red)"}}>
+                  Something went wrong sending your request. Please try again, or DM <a href="https://www.instagram.com/antdetailz/" target="_blank" rel="noreferrer" style={{color:"var(--red)", fontWeight:700}}>@antdetailz</a> on Instagram instead.
+                </p>
+              )}
               <p className="muted" style={{textAlign:"center", marginTop:12, fontSize:12}}>
                 Or DM <a href="https://www.instagram.com/antdetailz/" target="_blank" rel="noreferrer" style={{color:"var(--red)", fontWeight:700}}>@antdetailz</a> on Instagram instead.
               </p>
